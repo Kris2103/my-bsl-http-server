@@ -1,32 +1,51 @@
 # BSL HTTP Server
 
-A lightweight HTTP/1.1 web server built from scratch using the **Bonezegei (BSL)** programming language and the native socket library bindings.
+A lightweight, non-blocking HTTP web server built using the **Bonezegei Scripting Language (BSL)** and low-level socket programming. This project implements raw TCP socket bindings to handle incoming client connections, process HTTP/1.1 request strings, and serve dynamic HTML responses and appropriate HTTP status codes.
 
 ---
 
-## Features & Routing Specification
+## Table of Contents
 
-The server listens on `http://localhost:8080/` and handles client HTTP requests using custom route evaluation:
-
-| Route | Method | Status | Description |
-| :--- | :--- | :--- | :--- |
-| `/` | `GET` | `200 OK` | Default landing page welcoming the user |
-| `/about` | `GET` | `200 OK` | Information page about the project and implementation |
-| `*` (Any other path) | `GET` | `404 Not Found` | Custom 404 error page for unmapped routes |
+- [Project Description](#project-description)
+- [Features](#features)
+- [Repository Structure](#repository-structure)
+- [Installation & Setup Guide](#installation--setup-guide)
+- [Usage Instructions](#usage-instructions)
+- [Route Handlers](#route-handlers)
+- [Documentation & Screenshots](#documentation--screenshots)
+- [License](#license)
 
 ---
 
-## Project Structure
+## Project Description
+
+This project demonstrates core networking principles, socket programming, and HTTP protocol mechanics using **Bonezegei (BSL)**. Operating on port `8080`, the application handles incoming TCP connections from standard web browsers, parses raw HTTP request headers, and delivers compliant HTTP/1.1 response envelopes carrying headers and HTML payloads.
+
+The project highlights:
+
+* Low-level network socket lifecycles (initialization, socket creation, address binding, listening, and accepting client connections).
+* Raw string inspection for path-based HTTP routing.
+* Proper handling of standard HTTP response headers (`200 OK`, `404 Not Found`, `Content-Type`, `Content-Length`, `Connection: close`).
+* Memory management using manual garbage collection (`gc()`) on closed connections.
+
+---
+
+## Features
+
+* **Pure BSL Socket Implementation**: Direct interaction with the native socket library.
+* **Path Routing**: Built-in routing for predefined endpoints and fallback mechanics for unmapped routes.
+* **RFC-Compliant HTTP Responses**: Formatted headers paired with HTML payloads.
+* **Resource Management**: Explicit socket closure and garbage collection per request cycle to prevent resource exhaustion.
+
+---
+
+## Repository Structure
 
 ```text
 my-bsl-http-server/
 ├── .gitattributes
 ├── LICENSE
 ├── README.md
-├── lib/
-│   ├── socket.bzg
-│   └── socket/
-│       └── socket.dll
 ├── src/
 │   └── http.bzg
 └── documentation/
@@ -38,56 +57,126 @@ my-bsl-http-server/
 
 ---
 
-## Installation & Setup
+## Installation & Setup Guide
 
-### Prerequisites
+### 1. Prerequisites
 
-* [Bonezegei (BSL)](https://github.com/bonezegei) installed and added to system `PATH`
+* **Bonezegei (BSL) Interpreter**: Install the BSL interpreter (Windows via Microsoft Store, or Linux/Raspberry Pi via `.deb` — see the [BSL install guide](https://bonezegei.com/tutorials/bsl/install)).  
+  Verify the install:
+  ```bash
+  bonezegei --version
+  ```
+* **Git**: Installed and configured on your machine.
 
-### Running the Server
+### 2. Clone the Repository
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/Kris2103/my-bsl-http-server.git](https://github.com/Kris2103/my-bsl-http-server.git)
-   cd my-bsl-http-server
-   ```
+```bash
+git clone https://github.com/Kris2103/my-bsl-http-server.git
+cd my-bsl-http-server
 
-2. **Start the HTTP server:**
-   ```bash
-   bonezegei src/http.bzg
-   ```
+```
 
-3. **Open the routes in any web browser:**
-   * **Home:** `http://localhost:8080/`
-   * **About:** `http://localhost:8080/about`
-   * **404 Fallback:** `http://localhost:8080/hello`
+### 3. Install Socket Library
+
+The server relies on the BSL native socket bindings. Install the socket dependency locally into the project root:
+
+```bash
+bzg install socket
+
+```
+
+> **Note:** This command creates a local `lib/` directory containing `socket.bzg` and platform-specific socket binaries required for runtime execution.
+
+### 4. Run the Server
+
+Execute the entry script from the project root:
+
+```bash
+bonezegei src/http.bzg
+
+```
+
+Upon successful startup, your terminal will display:
+
+```text
+Socket Ready
+Server running on http://localhost:8080/
+
+```
 
 ---
 
-## Documentation & Verification
+## Usage Instructions
 
-### 1. Terminal Execution
-PowerShell session running the BSL server, binding to port 8080, and logging incoming client requests:
+Once the server is running, open any standard web browser or use a command-line tool like `curl` to interact with the endpoints:
 
-![Terminal Execution](documentation/terminal.png)
+| Endpoint | Expected Status | Description |
+| --- | --- | --- |
+| `http://localhost:8080/` | `200 OK` | Renders the primary landing page. |
+| `http://localhost:8080/about` | `200 OK` | Renders the project information page. |
+| `http://localhost:8080/anything` | `404 Not Found` | Renders the fallback error page for unmapped routes. |
 
-### 2. Default Landing Page (`/`)
-Response showing `HTTP/1.1 200 OK` on the root route:
-
-![Home Page](documentation/home.png)
-
-### 3. About Page (`/about`)
-Response showing `HTTP/1.1 200 OK` on the about route:
-
-![About Page](documentation/about.png)
-
-### 4. 404 Not Found Page
-Fallback handling showing `HTTP/1.1 404 Not Found` when requesting an unmapped route (e.g., `http://localhost:8080/hello`):
-
-![404 Error Page](documentation/404.png)
+To shut down the server, press `Ctrl + C` in your active terminal.
 
 ---
+
+## Route Handlers
+
+### 1. Root Route (`/`)
+
+* **Method:** `GET`
+* **Response Code:** `200 OK`
+* **Content-Type:** `text/html`
+* **Output:** Welcome banner and server status message.
+
+### 2. About Route (`/about`)
+
+* **Method:** `GET`
+* **Response Code:** `200 OK`
+* **Content-Type:** `text/html`
+* **Output:** Overview of the BSL HTTP Server project specifications.
+
+### 3. Fallback Route (`404`)
+
+* **Method:** `GET` (Any unmapped path)
+* **Response Code:** `404 Not Found`
+* **Content-Type:** `text/html`
+* **Output:** Standard error notification stating that the resource was not found.
+
+---
+
+## Documentation & Screenshots
+
+### 1. Root Route (`/`)
+
+Landing page served on `http://localhost:8080/` with a `200 OK` status.
+
+![Home Route](documentation/home.png)
+
+---
+
+### 2. About Route (`/about`)
+
+Informational route served on `http://localhost:8080/about` with a `200 OK` status.
+
+![About Route](documentation/about.png)
+
+---
+
+### 3. 404 Not Found Route
+
+Fallback page served on arbitrary paths (e.g., `http://localhost:8080/anything`) returning an HTTP `404 Not Found` status.
+
+![404 Error Route](documentation/404.png)
+
+---
+
+### 4. Terminal Output
+
+Execution output displaying server startup, incoming connections, raw request parsing, and system directory/user path.
+
+![Terminal Output](documentation/terminal.png)
 
 ## License
 
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
